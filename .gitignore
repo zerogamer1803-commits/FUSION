@@ -1,0 +1,15 @@
+.venv/
+**/.venv/
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+FUSION-source.zip
+*.zip
+Failure Analysis in Power Transformers Dataset/
+Smart Grid Terminal Fault Dataset/
