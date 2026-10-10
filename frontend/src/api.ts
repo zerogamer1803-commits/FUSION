@@ -128,3 +128,14 @@ export async function assessTransformer(
   return response.json();
 }
 
+export async function fetchLatestHealthAssessment(): Promise<HealthAssessment> {
+  const response = await fetch(`${API_BASE_URL}/health-assessment/latest`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Health assessment fetch failed: ${response.status}`);
+  }
+
+  return response.json();
+}
