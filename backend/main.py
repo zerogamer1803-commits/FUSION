@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 
 # =========================================================
-# 1. PROJECT PATHS AND FAULT MODEL
+# 1. PROJECT PATHS AND MODELS
 # =========================================================
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -30,13 +30,6 @@ model = saved_model["model"]
 FEATURES = list(saved_model["features"])
 explainer = shap.TreeExplainer(model)
 
-# Optional bundle for Health Index and Life Expectation.
-# Expected keys:
-# {
-#     "features": [...],
-#     "health_model": trained_health_model,
-#     "life_model": trained_life_model
-# }
 health_saved_model = None
 
 if HEALTH_MODEL_PATH.exists():
@@ -44,7 +37,7 @@ if HEALTH_MODEL_PATH.exists():
 
 
 # =========================================================
-# 2. FASTAPI APPLICATION
+# 2. FASTAPI APPLICATION AND CORS
 # =========================================================
 
 app = FastAPI(
@@ -53,7 +46,7 @@ app = FastAPI(
         "Smart-grid fault classification, transformer "
         "health assessment, and life expectation API."
     ),
-    version="2.0.0",
+    version="2.0.1",
 )
 
 app.add_middleware(
@@ -62,10 +55,14 @@ app.add_middleware(
         "https://fusion-gold.vercel.app",
         "http://localhost:5173",
     ],
+    # Also allow Vercel preview deployments.
+    allow_origin_regex=r"https://fusion-gold(?:-[a-z0-9-]+)*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
 
 # =========================================================
 # 3. FAULT DETECTION INPUT
@@ -105,7 +102,7 @@ API_TO_MODEL = {
 
 
 # =========================================================
-# 4. HEALTH INDEX INPUT
+# 4. HEALTH ASSESSMENT INPUT
 # =========================================================
 
 class HealthAssessmentInput(BaseModel):
@@ -234,7 +231,6 @@ def predict(readings: SensorReadings):
     }
 
     input_df = pd.DataFrame([row], columns=FEATURES)
-
     predicted_status = int(model.predict(input_df)[0])
 
     if not hasattr(model, "predict_proba"):
@@ -249,9 +245,11 @@ def predict(readings: SensorReadings):
         for index, label in enumerate(model.classes_)
     }
 
-    fault_probability = float(
-        probabilities[class_positions[1]]
-    ) if 1 in class_positions else 0.0
+    fault_probability = (
+        float(probabilities[class_positions[1]])
+        if 1 in class_positions
+        else 0.0
+    )
 
     shap_values = explainer.shap_values(input_df)
 
