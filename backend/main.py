@@ -49,13 +49,13 @@ app = FastAPI(
     version="2.0.1",
 )
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://fusion-gold.vercel.app",
         "http://localhost:5173",
     ],
-    # Also allow Vercel preview deployments.
     allow_origin_regex=r"https://fusion-gold(?:-[a-z0-9-]+)*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
