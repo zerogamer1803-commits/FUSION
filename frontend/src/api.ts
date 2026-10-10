@@ -1,5 +1,5 @@
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = "https://fusion-backend-0k7y.onrender.com";
 
 export interface SensorReadings {
   voltage: number;
@@ -127,3 +127,4 @@ export async function assessTransformer(
 
   return response.json();
 }
+
