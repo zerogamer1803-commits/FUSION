@@ -13,7 +13,14 @@ import {
 
 } from 'lucide-react'
 
-import { checkBackend, fetchLatest, assessTransformer } from './api'
+
+import {
+  checkBackend,
+  fetchLatest,
+  assessTransformer,
+  fetchLatestHealthAssessment,
+} from './api'
+
 
 import type { SensorReadings, FaultPrediction, TransformerReadings, HealthAssessment } from './api'
 
@@ -261,6 +268,36 @@ function App() {
 
     }
 
+  }, [])
+
+  // Keep the Health Index in sync with the latest assessment submitted through
+  // Swagger or the dashboard form.
+  useEffect(() => {
+    let active = true
+
+    async function syncLatestHealthAssessment() {
+      try {
+        const result = await fetchLatestHealthAssessment()
+        if (!active) return
+
+        if (result.available) {
+          setHealthAssessment(result)
+          setHealthError('')
+        }
+      } catch {
+        // The backend may not have a saved health assessment yet.
+      }
+    }
+
+    void syncLatestHealthAssessment()
+    const timer = window.setInterval(() => {
+      void syncLatestHealthAssessment()
+    }, 3000)
+
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
   }, [])
 
   const navItems: { label: NavItem; icon: typeof LayoutDashboard }[] = [
